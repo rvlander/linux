@@ -80,7 +80,7 @@
 			pinctrl-0 = <&cdc_pdm_lines_act &ext_sec_tlmm_lines_act>;
 			pinctrl-1 = <&cdc_pdm_lines_sus &ext_sec_tlmm_lines_sus>;
 
-			qcom,model = "msm8916"; // FIXME
+			qcom,model = "samsung-gt510"; // FIXME
 			qcom,audio-routing =
 				"AMIC1", "MIC BIAS External1",
 				"AMIC2", "MIC BIAS Internal2",
