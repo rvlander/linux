@@ -99,27 +99,6 @@
 		etm@85e000 { status = "disabled"; };
 		etm@85f000 { status = "disabled"; };
 	};
-
-
-	i2c-muic {
-		compatible = "i2c-gpio";
-		sda-gpios = <&msmgpio 2 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
-		scl-gpios = <&msmgpio 3 (GPIO_ACTIVE_HIGH|GPIO_OPEN_DRAIN)>;
-
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		muic: sm5502@25 {
-			compatible = "siliconmitus,sm5502-muic";
-
-			reg = <0x25>;
-			interrupt-parent = <&msmgpio>;
-			interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
-
-			pinctrl-names = "default";
-			pinctrl-0 = <&muic_int_default>;
-		};
-	};
 };
 
 &smd_rpm_regulators {
@@ -246,5 +225,20 @@
 			drive-strength = <2>;
 			bias-disable;
 		};
+	};
+};
+
+&blsp_i2c1 {
+	status = "okay";
+
+	muic: muic@25 {
+		compatible = "siliconmitus,sm5502-muic";
+
+		reg = <0x25>;
+		interrupt-parent = <&msmgpio>;
+		interrupts = <12 IRQ_TYPE_EDGE_FALLING>;
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&muic_int_default>;
 	};
 };
