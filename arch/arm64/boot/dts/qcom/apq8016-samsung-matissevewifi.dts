@@ -150,8 +150,8 @@
 		reg_lcd: regulator-lcd {
 			compatible = "regulator-fixed";
 			regulator-name = "lcd";
-			regulator-min-microvolt = <1800000>;
-			regulator-max-microvolt = <1800000>;
+			// regulator-min-microvolt = <1800000>;
+			// regulator-max-microvolt = <1800000>;
 
 			gpio = <&msmgpio 8 0>;
 			enable-active-high;
@@ -163,8 +163,8 @@
 		reg_lvds: regulator-lvds {
 			compatible = "regulator-fixed";
 			regulator-name = "lvds";
-			regulator-min-microvolt = <5400000>;
-			regulator-max-microvolt = <5400000>;
+			// regulator-min-microvolt = <5400000>;
+			// regulator-max-microvolt = <5400000>;
 
 			gpio = <&msmgpio 17 0>;
 			enable-active-high;
@@ -196,7 +196,7 @@
 	pinctrl-1 = <&mdss_sleep>;
 
 	panel@0 {
-		compatible = "tc358764-ltl101a010";
+		compatible = "samsung,tc358764-ltl101a010";
 		reg = <0>;
 
 		lcd-supply = <&reg_lcd>;
@@ -379,15 +379,14 @@
 		};
 	};
 
-  // there seem to have 3 pins down stream 17, 8, 31 ??
 	pmx_mdss {
 		mdss_default: mdss_default {
 			pinmux {
 				function = "gpio";
-				pins = "gpio8";
+				pins = "gpio31";
 			};
 			pinconf {
-				pins = "gpio8";
+				pins = "gpio31";
 				drive-strength = <8>;
 				bias-disable;
 			};
@@ -396,10 +395,10 @@
 		mdss_sleep: mdss_sleep {
 			pinmux {
 				function = "gpio";
-				pins = "gpio8";
+				pins = "gpio31";
 			};
 			pinconf {
-				pins = "gpioi8";
+				pins = "gpio31";
 				drive-strength = <2>;
 				bias-pull-down;
 			};
