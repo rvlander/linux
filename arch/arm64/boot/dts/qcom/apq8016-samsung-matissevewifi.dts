@@ -17,11 +17,15 @@
 	};
 
 	chosen {
-		stdout-path = "serial0";
+    #address-cells = <2>;
+		#size-cells = <2>;
+    ranges;
+
+    stdout-path = "serial0";
 	
 		framebuffer@8e000000 {
-			status= "disabled";
-			//status= "okay";
+		  status= "disabled";
+			// status= "okay";
 			compatible = "simple-framebuffer";
 			reg = <0x0 0x8e000000 0x0 (1280 * 800 * 3)>;
 			width = <1280>;
@@ -29,7 +33,7 @@
 			stride = <(1280 * 3)>;
 			format = "r8g8b8";
 			power-domains = <&gcc MDSS_GDSC>;
-			display = <&dsi0>;
+      clocks = <&gcc GCC_GP3_CLK>;
 		};
 		
 	};
@@ -41,7 +45,7 @@
 			no-map;
 		};
 		continuous_splash: framebuffer@8e000000{
-			reg = <0x0 0x8e000000 0x0 (1280 * 200 * 3)>;
+			reg = <0x0 0x8e000000 0x0 (1280 * 800 * 3)>;
 			no-map;
 		};
 	};
@@ -104,58 +108,20 @@
 			};
 		};
 
-    /*mdss@1a00000 {
-			status = "okay";
-
-			mdp@1a01000 {
-				status = "okay";
-			};
-			
-			dsi0: dsi@1a98000 {
+    mdss@1a00000 {
+			dsi@1a98000 {
 				#address-cells = <1>;
 				#size-cells = <0>;
-				
-				status = "okay";
+
 				vdda-supply = <&pm8916_l2>;
-				vdd-supply = <&pm8916_l6>;
-				// vddio-supply = <&pm8916_l6>;
-				
-				pinctrl-names = "default", "sleep";
-				pinctrl-0 = <&mdss_default &lcd_en_default>;
-				pinctrl-1 = <&mdss_sleep>;
-				
-				panel@0 {
-					reg = <0>;
-					
-					compatible = "toshiba,tc358764";
-
-					// extra-power-gpios = <&msmgpio 9 GPIO_ACTIVE_HIGH>;
-					reset-gpios = <&msmgpio 31 GPIO_ACTIVE_HIGH>;
-
-					port {
-						panel_in: endpoint {
-							remote-endpoint = <&dsi0_out>;
-						};
-					};
-				};
-				
-				ports {
-					port@1 {
-						dsi0_out: endpoint {
-							remote-endpoint = <&panel_in>;
-							data-lanes = <0 1 2 3>;
-						};
-					};
-				};
+				vddio-supply = <&pm8916_l6>;
 			};
 
 			dsi-phy@1a98300 {
-				status = "okay";
-
 				vddio-supply = <&pm8916_l6>;
 			};
-		};*/
-	
+		};
+
 		/*
 		 * Attempting to enable these devices causes a "synchronous
 		 * external abort". Suspected cause is that the debug power
@@ -179,9 +145,11 @@
 		etm@85e000 { status = "disabled"; };
 		etm@85f000 { status = "disabled"; };
 
-		/*reg_lcd_vmipi: regulator-lcd-vmipi {
+    
+    // I fail to find these configuration down stream
+		reg_lcd: regulator-lcd {
 			compatible = "regulator-fixed";
-			regulator-name = "lcd_vmipi";
+			regulator-name = "lcd";
 			regulator-min-microvolt = <1800000>;
 			regulator-max-microvolt = <1800000>;
 
@@ -192,18 +160,18 @@
 			pinctrl-0 = <&lcd_en_default>;
 		};
 
-		reg_vlcd_5p4v: regulator-vlcd-5p4v {
+		reg_lvds: regulator-lvds {
 			compatible = "regulator-fixed";
-			regulator-name = "vlcd_5p4v";
+			regulator-name = "lvds";
 			regulator-min-microvolt = <5400000>;
 			regulator-max-microvolt = <5400000>;
 
-			gpio = <&msmgpio 51 0>;
+			gpio = <&msmgpio 17 0>;
 			enable-active-high;
 
 			pinctrl-names = "default";
-			pinctrl-0 = <&buckbooster_en_default>;
-		};*/
+			pinctrl-0 = <&lvds_en_default>;
+		};
 	};
 };
 
@@ -219,6 +187,45 @@
 
 		pinctrl-names = "default";
 		pinctrl-0 = <&muic_int_default>;
+	};
+};
+
+&dsi0 {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&mdss_default>;
+	pinctrl-1 = <&mdss_sleep>;
+
+	panel@0 {
+		compatible = "tc358764-ltl101a010";
+		reg = <0>;
+
+		lcd-supply = <&reg_lcd>;
+		lvds-supply = <&reg_lvds>;
+		reset-gpios = <&msmgpio 31 GPIO_ACTIVE_HIGH>;
+
+    clocks = <&gcc GCC_GP3_CLK>;
+    clock-names = "pwm";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				panel_in: endpoint {
+					remote-endpoint = <&dsi0_out>;
+				};
+			};
+		};
+	};
+
+	ports {
+		port@1 {
+			endpoint {
+				remote-endpoint = <&panel_in>;
+				data-lanes = <0 1 2 3>;
+			};
+		};
 	};
 };
 
@@ -348,18 +355,31 @@
 		};
 	};
 
-	/*lcd_en_default: lcd_en_default {
+ 	lvds_en_default: lvds_en_default {
 		pinmux {
 			function = "gpio";
-			pins = "gpio56";
+			pins = "gpio17";
 		};
 		pinconf {
-			pins = "gpio56";
+			pins = "gpio17";
+			drive-strength = <2>;
+			bias-disable;
+		};
+	}; 
+
+	lcd_en_default: lcd_en_default {
+		pinmux {
+			function = "gpio";
+			pins = "gpio8";
+		};
+		pinconf {
+			pins = "gpio8";
 			drive-strength = <2>;
 			bias-disable;
 		};
 	};
 
+  // there seem to have 3 pins down stream 17, 8, 31 ??
 	pmx_mdss {
 		mdss_default: mdss_default {
 			pinmux {
@@ -384,6 +404,6 @@
 				bias-pull-down;
 			};
 		};
-	}; */
+	};
 };
 
