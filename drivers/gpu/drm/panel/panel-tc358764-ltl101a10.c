@@ -3,25 +3,30 @@
 // Generated with linux-mdss-dsi-panel-driver-generator from vendor device tree:
 //   Copyright (c) 2013, The Linux Foundation. All rights reserved. (FIXME)
 
+#include <linux/clk.h>
 #include <linux/delay.h>
 #include <linux/gpio/consumer.h>
 #include <linux/module.h>
 #include <linux/of.h>
+#include <linux/regulator/consumer.h>
 
 #include <drm/drm_mipi_dsi.h>
 #include <drm/drm_modes.h>
 #include <drm/drm_panel.h>
 
-struct sim {
+struct tc358764_ltl101a10 {
 	struct drm_panel panel;
 	struct mipi_dsi_device *dsi;
+	struct regulator_bulk_data supplies[2];
 	struct gpio_desc *reset_gpio;
+	struct clk *pwm_clk;
 	bool prepared;
 };
 
-static inline struct sim *to_sim(struct drm_panel *panel)
+static inline
+struct tc358764_ltl101a10 *to_tc358764_ltl101a10(struct drm_panel *panel)
 {
-	return container_of(panel, struct sim, panel);
+	return container_of(panel, struct tc358764_ltl101a10, panel);
 }
 
 #define dsi_generic_write_seq(dsi, seq...) do {				\
@@ -32,7 +37,7 @@ static inline struct sim *to_sim(struct drm_panel *panel)
 			return ret;					\
 	} while (0)
 
-static void sim_reset(struct sim *ctx)
+static void tc358764_ltl101a10_reset(struct tc358764_ltl101a10 *ctx)
 {
 	gpiod_set_value_cansleep(ctx->reset_gpio, 1);
 	usleep_range(1000, 2000);
@@ -42,7 +47,7 @@ static void sim_reset(struct sim *ctx)
 	usleep_range(1000, 2000);
 }
 
-static int sim_on(struct sim *ctx)
+static int tc358764_ltl101a10_on(struct tc358764_ltl101a10 *ctx)
 {
 	struct mipi_dsi_device *dsi = ctx->dsi;
 	struct device *dev = &dsi->dev;
@@ -84,7 +89,7 @@ static int sim_on(struct sim *ctx)
 	return 0;
 }
 
-static int sim_off(struct sim *ctx)
+static int tc358764_ltl101a10_off(struct tc358764_ltl101a10 *ctx)
 {
 	struct mipi_dsi_device *dsi = ctx->dsi;
 	struct device *dev = &dsi->dev;
@@ -99,21 +104,34 @@ static int sim_off(struct sim *ctx)
 	return 0;
 }
 
-static int sim_prepare(struct drm_panel *panel)
+static int tc358764_ltl101a10_prepare(struct drm_panel *panel)
 {
-	struct sim *ctx = to_sim(panel);
+	struct tc358764_ltl101a10 *ctx = to_tc358764_ltl101a10(panel);
 	struct device *dev = &ctx->dsi->dev;
 	int ret;
 
 	if (ctx->prepared)
 		return 0;
 
-	sim_reset(ctx);
+	ret = regulator_bulk_enable(ARRAY_SIZE(ctx->supplies), ctx->supplies);
+	if (ret < 0) {
+		dev_err(dev, "Failed to enable regulators: %d\n", ret);
+		return ret;
+	}
 
-	ret = sim_on(ctx);
+	tc358764_ltl101a10_reset(ctx);
+
+	ret = tc358764_ltl101a10_on(ctx);
 	if (ret < 0) {
 		dev_err(dev, "Failed to initialize panel: %d\n", ret);
 		gpiod_set_value_cansleep(ctx->reset_gpio, 0);
+		regulator_bulk_disable(ARRAY_SIZE(ctx->supplies), ctx->supplies);
+		return ret;
+	}
+
+	ret = clk_prepare_enable(ctx->pwm_clk);
+	if (ret < 0) {
+		dev_err(dev, "Failed to enable pwm clock: %d\n", ret);
 		return ret;
 	}
 
@@ -121,26 +139,28 @@ static int sim_prepare(struct drm_panel *panel)
 	return 0;
 }
 
-static int sim_unprepare(struct drm_panel *panel)
+static int tc358764_ltl101a10_unprepare(struct drm_panel *panel)
 {
-	struct sim *ctx = to_sim(panel);
+	struct tc358764_ltl101a10 *ctx = to_tc358764_ltl101a10(panel);
 	struct device *dev = &ctx->dsi->dev;
 	int ret;
 
 	if (!ctx->prepared)
 		return 0;
 
-	ret = sim_off(ctx);
+	ret = tc358764_ltl101a10_off(ctx);
 	if (ret < 0)
 		dev_err(dev, "Failed to un-initialize panel: %d\n", ret);
 
 	gpiod_set_value_cansleep(ctx->reset_gpio, 0);
+	regulator_bulk_disable(ARRAY_SIZE(ctx->supplies), ctx->supplies);
+	clk_disable_unprepare(ctx->pwm_clk);
 
 	ctx->prepared = false;
 	return 0;
 }
 
-static const struct drm_display_mode sim_mode = {
+static const struct drm_display_mode tc358764_ltl101a10_mode = {
 	.clock = (1280 + 52 + 4 + 48) * (800 + 32 + 6 + 64) * 60 / 1000,
 	.hdisplay = 1280,
 	.hsync_start = 1280 + 52,
@@ -155,12 +175,12 @@ static const struct drm_display_mode sim_mode = {
 	.height_mm = 149,
 };
 
-static int sim_get_modes(struct drm_panel *panel,
-			 struct drm_connector *connector)
+static int tc358764_ltl101a10_get_modes(struct drm_panel *panel,
+					struct drm_connector *connector)
 {
 	struct drm_display_mode *mode;
 
-	mode = drm_mode_duplicate(connector->dev, &sim_mode);
+	mode = drm_mode_duplicate(connector->dev, &tc358764_ltl101a10_mode);
 	if (!mode)
 		return -ENOMEM;
 
@@ -174,26 +194,42 @@ static int sim_get_modes(struct drm_panel *panel,
 	return 1;
 }
 
-static const struct drm_panel_funcs sim_panel_funcs = {
-	.prepare = sim_prepare,
-	.unprepare = sim_unprepare,
-	.get_modes = sim_get_modes,
+static const struct drm_panel_funcs tc358764_ltl101a10_panel_funcs = {
+	.prepare = tc358764_ltl101a10_prepare,
+	.unprepare = tc358764_ltl101a10_unprepare,
+	.get_modes = tc358764_ltl101a10_get_modes,
 };
 
-static int sim_probe(struct mipi_dsi_device *dsi)
+static int tc358764_ltl101a10_probe(struct mipi_dsi_device *dsi)
 {
 	struct device *dev = &dsi->dev;
-	struct sim *ctx;
+	struct tc358764_ltl101a10 *ctx;
 	int ret;
 
 	ctx = devm_kzalloc(dev, sizeof(*ctx), GFP_KERNEL);
 	if (!ctx)
 		return -ENOMEM;
 
+	ctx->supplies[0].supply = "lcd";
+	ctx->supplies[1].supply = "lvds";
+	ret = devm_regulator_bulk_get(dev, ARRAY_SIZE(ctx->supplies),
+				      ctx->supplies);
+	if (ret < 0) {
+		dev_err(dev, "Failed to get regulators: %d\n", ret);
+		return ret;
+	}
+
 	ctx->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
 	if (IS_ERR(ctx->reset_gpio)) {
 		ret = PTR_ERR(ctx->reset_gpio);
 		dev_err(dev, "Failed to get reset-gpios: %d\n", ret);
+		return ret;
+	}
+
+	ctx->pwm_clk = devm_clk_get(dev, "pwm");
+	if (IS_ERR(ctx->pwm_clk)) {
+		ret = PTR_ERR(ctx->pwm_clk);
+		dev_err(dev, "Failed to get pwm clock: %d\n", ret);
 		return ret;
 	}
 
@@ -205,14 +241,8 @@ static int sim_probe(struct mipi_dsi_device *dsi)
 	dsi->mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE |
 			  MIPI_DSI_MODE_EOT_PACKET;
 
-	drm_panel_init(&ctx->panel, dev, &sim_panel_funcs,
+	drm_panel_init(&ctx->panel, dev, &tc358764_ltl101a10_panel_funcs,
 		       DRM_MODE_CONNECTOR_DSI);
-
-	ret = drm_panel_of_backlight(&ctx->panel);
-	if (ret) {
-		dev_err(dev, "Failed to get backlight: %d\n", ret);
-		return ret;
-	}
 
 	ret = drm_panel_add(&ctx->panel);
 	if (ret < 0) {
@@ -229,9 +259,9 @@ static int sim_probe(struct mipi_dsi_device *dsi)
 	return 0;
 }
 
-static int sim_remove(struct mipi_dsi_device *dsi)
+static int tc358764_ltl101a10_remove(struct mipi_dsi_device *dsi)
 {
-	struct sim *ctx = mipi_dsi_get_drvdata(dsi);
+	struct tc358764_ltl101a10 *ctx = mipi_dsi_get_drvdata(dsi);
 	int ret;
 
 	ret = mipi_dsi_detach(dsi);
@@ -243,21 +273,21 @@ static int sim_remove(struct mipi_dsi_device *dsi)
 	return 0;
 }
 
-static const struct of_device_id sim_of_match[] = {
-	{ .compatible = "sim" }, // FIXME
+static const struct of_device_id tc358764_ltl101a10_of_match[] = {
+	{ .compatible = "mdss,tc358764-ltl101a10" }, // FIXME
 	{ /* sentinel */ }
 };
-MODULE_DEVICE_TABLE(of, sim_of_match);
+MODULE_DEVICE_TABLE(of, tc358764_ltl101a10_of_match);
 
-static struct mipi_dsi_driver sim_driver = {
-	.probe = sim_probe,
-	.remove = sim_remove,
+static struct mipi_dsi_driver tc358764_ltl101a10_driver = {
+	.probe = tc358764_ltl101a10_probe,
+	.remove = tc358764_ltl101a10_remove,
 	.driver = {
-		.name = "panel-sim",
-		.of_match_table = sim_of_match,
+		.name = "panel-tc358764-ltl101a10",
+		.of_match_table = tc358764_ltl101a10_of_match,
 	},
 };
-module_mipi_dsi_driver(sim_driver);
+module_mipi_dsi_driver(tc358764_ltl101a10_driver);
 
 MODULE_AUTHOR("linux-mdss-dsi-panel-driver-generator <fix@me>"); // FIXME
 MODULE_DESCRIPTION("DRM driver for ss_dsi_panel_TC358764_LTL101A106_WXGA");
