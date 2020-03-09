@@ -274,7 +274,7 @@ static int tc358764_ltl101a10_remove(struct mipi_dsi_device *dsi)
 }
 
 static const struct of_device_id tc358764_ltl101a10_of_match[] = {
-	{ .compatible = "mdss,tc358764-ltl101a10" }, // FIXME
+	{ .compatible = "samsung,tc358764-ltl101a10" },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, tc358764_ltl101a10_of_match);
