@@ -152,6 +152,9 @@
 			regulator-name = "lcd";
 			// regulator-min-microvolt = <1800000>;
 			// regulator-max-microvolt = <1800000>;
+ 
+			regulator-always-on;
+			regulator-boot-on;
 
 			gpio = <&msmgpio 8 0>;
 			enable-active-high;
@@ -165,6 +168,9 @@
 			regulator-name = "lvds";
 			// regulator-min-microvolt = <5400000>;
 			// regulator-max-microvolt = <5400000>;
+
+			regulator-always-on;
+			regulator-boot-on;
 
 			gpio = <&msmgpio 17 0>;
 			enable-active-high;
@@ -196,7 +202,7 @@
 	pinctrl-1 = <&mdss_sleep>;
 
 	panel@0 {
-		compatible = "samsung,tc358764-ltl101a010";
+		compatible = "samsung,tc358764-ltl101a06";
 		reg = <0>;
 
 		lcd-supply = <&reg_lcd>;
