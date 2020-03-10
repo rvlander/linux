@@ -16,13 +16,33 @@
 	};
 
 	chosen {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
 		stdout-path = "serial0";
+
+		framebuffer@8e000000 {
+			status= "okay";
+			compatible = "simple-framebuffer";
+			reg = <0x0 0x8e000000 0x0 (1280 * 800 * 3)>;
+			width = <1280>;
+			height = <800>;
+			stride = <(1280 * 3)>;
+			format = "r8g8b8";
+			power-domains = <&gcc MDSS_GDSC>;
+			clocks = <&gcc GCC_GP3_CLK>;
+		};
 	};
 
 	reserved-memory {
 		/* Additional memory used by Samsung firmware modifications */
 		tz-apps@85500000 {
 			reg = <0x0 0x85500000 0x0 0xb00000>;
+			no-map;
+		};
+		continuous_splash: framebuffer@8e000000{
+			reg = <0x0 0x8e000000 0x0 (1280 * 800 * 3)>;
 			no-map;
 		};
 	};
