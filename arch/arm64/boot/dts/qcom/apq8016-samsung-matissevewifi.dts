@@ -31,7 +31,15 @@
 			stride = <(1280 * 3)>;
 			format = "r8g8b8";
 			power-domains = <&gcc MDSS_GDSC>;
-			clocks = <&gcc GCC_GP3_CLK>;
+			clocks = <&gcc GCC_GP3_CLK>,
+							<&gcc GCC_MDSS_AHB_CLK>,
+				 			<&gcc GCC_MDSS_VSYNC_CLK>,
+					 		<&gcc GCC_MDSS_AXI_CLK>,
+					 		<&gcc GCC_MDSS_MDP_CLK>,
+					 		<&gcc GCC_MDSS_BYTE0_CLK>,
+					 		<&gcc GCC_MDSS_PCLK0_CLK>,
+					 		<&gcc GCC_MDSS_ESC0_CLK>,
+					 		<&xo_board>;
 		};
 	};
 
@@ -105,6 +113,13 @@
 			};
 		};
 
+		gpu@1c00000 {
+			status ="disabled";
+		};
+
+		mdss@1a00000 {
+			status ="disabled";
+		};
 		/*
 		 * Attempting to enable these devices causes a "synchronous
 		 * external abort". Suspected cause is that the debug power
