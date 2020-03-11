@@ -202,7 +202,7 @@
 	pinctrl-1 = <&mdss_sleep>;
 
 	panel@0 {
-		compatible = "samsung,tc358764-ltl101a06";
+		compatible = "samsung,tc358764-ltl101a06-simple";
 		reg = <0>;
 
 		lcd-supply = <&reg_lcd>;
