@@ -150,8 +150,8 @@
 		reg_lcd: regulator-lcd {
 			compatible = "regulator-fixed";
 			regulator-name = "lcd";
-			// regulator-min-microvolt = <1800000>;
-			// regulator-max-microvolt = <1800000>;
+			regulator-min-microvolt = <1800000>;
+			regulator-max-microvolt = <1800000>;
  
 			regulator-always-on;
 			regulator-boot-on;
@@ -166,8 +166,8 @@
 		reg_lvds: regulator-lvds {
 			compatible = "regulator-fixed";
 			regulator-name = "lvds";
-			// regulator-min-microvolt = <5400000>;
-			// regulator-max-microvolt = <5400000>;
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
 
 			regulator-always-on;
 			regulator-boot-on;
