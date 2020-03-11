@@ -5,6 +5,7 @@
 #include "msm8916.dtsi"
 #include "pm8916.dtsi"
 #include <dt-bindings/gpio/gpio.h>
+#include "arm/qcom-msm8916-no-psci.dtsi"
 #include <dt-bindings/interrupt-controller/irq.h>
 
 / {
@@ -37,9 +38,11 @@
 							<&gcc GCC_MDSS_VSYNC_CLK>,
 					 		<&gcc GCC_MDSS_AXI_CLK>,
 					 		<&gcc GCC_MDSS_MDP_CLK>,
+					 		/*
 					 		<&gcc GCC_MDSS_BYTE0_CLK>,
 					 		<&gcc GCC_MDSS_PCLK0_CLK>,
 					 		<&gcc GCC_MDSS_ESC0_CLK>,
+					 		*/
 					 		<&xo_board>;
 		};
 	};
@@ -175,6 +178,13 @@
 			pinctrl-names = "default";
 			pinctrl-0 = <&lvds_en_default>;
 		};
+		
+		dumb {
+			compatible = "minecrell,dumb-mdss-clk";
+			clocks = <&gcc GCC_MDSS_BYTE0_CLK>,
+							<&gcc GCC_MDSS_PCLK0_CLK>,
+							<&gcc GCC_MDSS_ESC0_CLK>;
+ 		};
 	};
 };
 
