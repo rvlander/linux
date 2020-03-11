@@ -31,6 +31,8 @@
 			stride = <(1280 * 3)>;
 			format = "r8g8b8";
 			power-domains = <&gcc MDSS_GDSC>;
+			lcd-supply = <&reg_lcd>;
+			lvds-supply = <&reg_lvds>;
 			clocks = <&gcc GCC_MDSS_AHB_CLK>,
 							<&gcc GCC_MDSS_VSYNC_CLK>,
 					 		<&gcc GCC_MDSS_AXI_CLK>,
@@ -141,6 +143,38 @@
 		etm@85d000 { status = "disabled"; };
 		etm@85e000 { status = "disabled"; };
 		etm@85f000 { status = "disabled"; };
+
+		reg_lcd: regulator-lcd {
+			compatible = "regulator-fixed";
+			regulator-name = "lcd";
+			// regulator-min-microvolt = <1800000>;
+			// regulator-max-microvolt = <1800000>;
+ 
+			regulator-always-on;
+			regulator-boot-on;
+
+			gpio = <&msmgpio 8 0>;
+			enable-active-high;
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&lcd_en_default>;
+		};
+
+		reg_lvds: regulator-lvds {
+			compatible = "regulator-fixed";
+			regulator-name = "lvds";
+			// regulator-min-microvolt = <5400000>;
+			// regulator-max-microvolt = <5400000>;
+
+			regulator-always-on;
+			regulator-boot-on;
+
+			gpio = <&msmgpio 17 0>;
+			enable-active-high;
+
+			pinctrl-names = "default";
+			pinctrl-0 = <&lvds_en_default>;
+		};
 	};
 };
 
@@ -280,6 +314,29 @@
 		};
 		pinconf {
 			pins = "gpio12";
+			drive-strength = <2>;
+			bias-disable;
+		};
+	};
+	lvds_en_default: lvds_en_default {
+		pinmux {
+			function = "gpio";
+			pins = "gpio17";
+		};
+		pinconf {
+			pins = "gpio17";
+			drive-strength = <2>;
+			bias-disable;
+		};
+	}; 
+
+	lcd_en_default: lcd_en_default {
+		pinmux {
+			function = "gpio";
+			pins = "gpio8";
+		};
+		pinconf {
+			pins = "gpio8";
 			drive-strength = <2>;
 			bias-disable;
 		};
