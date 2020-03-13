@@ -119,15 +119,15 @@ static int tc358764_ltl101a10_prepare(struct drm_panel *panel)
 		return ret;
 	}
 
-	tc358764_ltl101a10_reset(ctx);
+//	tc358764_ltl101a10_reset(ctx);
 
-	ret = tc358764_ltl101a10_on(ctx);
+/*	ret = tc358764_ltl101a10_on(ctx);
 	if (ret < 0) {
 		dev_err(dev, "Failed to initialize panel: %d\n", ret);
 		gpiod_set_value_cansleep(ctx->reset_gpio, 0);
 		regulator_bulk_disable(ARRAY_SIZE(ctx->supplies), ctx->supplies);
 		return ret;
-	}
+	}*/
 
 	ret = clk_prepare_enable(ctx->pwm_clk);
 	if (ret < 0) {
@@ -219,7 +219,7 @@ static int tc358764_ltl101a10_probe(struct mipi_dsi_device *dsi)
 		return ret;
 	}
 
-	ctx->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
+	ctx->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_ASIS);
 	if (IS_ERR(ctx->reset_gpio)) {
 		ret = PTR_ERR(ctx->reset_gpio);
 		dev_err(dev, "Failed to get reset-gpios: %d\n", ret);
