@@ -123,14 +123,14 @@
 		etm@85e000 { status = "disabled"; };
 		etm@85f000 { status = "disabled"; };
 
-    
+
     // I fail to find these configuration down stream
 		reg_lcd: regulator-lcd {
 			compatible = "regulator-fixed";
 			regulator-name = "lcd";
 			regulator-min-microvolt = <1800000>;
 			regulator-max-microvolt = <1800000>;
- 
+
 			regulator-always-on;
 			regulator-boot-on;
 
@@ -349,7 +349,7 @@
 			drive-strength = <2>;
 			bias-disable;
 		};
-	}; 
+	};
 
 	lcd_en_default: lcd_en_default {
 		pinmux {
