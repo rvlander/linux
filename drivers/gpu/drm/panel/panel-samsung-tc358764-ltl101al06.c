@@ -154,7 +154,7 @@ static int tc358764_ltl101al06_unprepare(struct drm_panel *panel)
 	ret = tc358764_ltl101al06_off(ctx);
 	if (ret < 0)
 		dev_err(dev, "Failed to un-initialize panel: %d\n", ret);
-  
+
 	gpiod_set_value_cansleep(ctx->reset_gpio, 0);
 	*/
 
