@@ -14,7 +14,7 @@
 #include <drm/drm_modes.h>
 #include <drm/drm_panel.h>
 
-struct tc358764_ltl101a10 {
+struct tc358764_ltl101al06 {
 	struct drm_panel panel;
 	struct mipi_dsi_device *dsi;
 	struct regulator_bulk_data supplies[2];
@@ -24,9 +24,9 @@ struct tc358764_ltl101a10 {
 };
 
 static inline
-struct tc358764_ltl101a10 *to_tc358764_ltl101a10(struct drm_panel *panel)
+struct tc358764_ltl101al06 *to_tc358764_ltl101al06(struct drm_panel *panel)
 {
-	return container_of(panel, struct tc358764_ltl101a10, panel);
+	return container_of(panel, struct tc358764_ltl101al06, panel);
 }
 
 #define dsi_generic_write_seq(dsi, seq...) do {				\
@@ -37,7 +37,7 @@ struct tc358764_ltl101a10 *to_tc358764_ltl101a10(struct drm_panel *panel)
 			return ret;					\
 	} while (0)
 
-static void tc358764_ltl101a10_reset(struct tc358764_ltl101a10 *ctx)
+static void tc358764_ltl101al06_reset(struct tc358764_ltl101al06 *ctx)
 {
 	gpiod_set_value_cansleep(ctx->reset_gpio, 1);
 	usleep_range(1000, 2000);
@@ -47,7 +47,7 @@ static void tc358764_ltl101a10_reset(struct tc358764_ltl101a10 *ctx)
 	usleep_range(1000, 2000);
 }
 
-static int tc358764_ltl101a10_on(struct tc358764_ltl101a10 *ctx)
+static int tc358764_ltl101al06_on(struct tc358764_ltl101al06 *ctx)
 {
 	struct mipi_dsi_device *dsi = ctx->dsi;
 	struct device *dev = &dsi->dev;
@@ -89,7 +89,7 @@ static int tc358764_ltl101a10_on(struct tc358764_ltl101a10 *ctx)
 	return 0;
 }
 
-static int tc358764_ltl101a10_off(struct tc358764_ltl101a10 *ctx)
+static int tc358764_ltl101al06_off(struct tc358764_ltl101al06 *ctx)
 {
 	struct mipi_dsi_device *dsi = ctx->dsi;
 	struct device *dev = &dsi->dev;
@@ -104,9 +104,9 @@ static int tc358764_ltl101a10_off(struct tc358764_ltl101a10 *ctx)
 	return 0;
 }
 
-static int tc358764_ltl101a10_prepare(struct drm_panel *panel)
+static int tc358764_ltl101al06_prepare(struct drm_panel *panel)
 {
-	struct tc358764_ltl101a10 *ctx = to_tc358764_ltl101a10(panel);
+	struct tc358764_ltl101al06 *ctx = to_tc358764_ltl101al06(panel);
 	struct device *dev = &ctx->dsi->dev;
 	int ret;
 
@@ -119,9 +119,11 @@ static int tc358764_ltl101a10_prepare(struct drm_panel *panel)
 		return ret;
 	}
 
-//	tc358764_ltl101a10_reset(ctx);
 
-/*	ret = tc358764_ltl101a10_on(ctx);
+	/* TODO: investigate
+	tc358764_ltl101al06_reset(ctx);
+
+	ret = tc358764_ltl101al06_on(ctx);
 	if (ret < 0) {
 		dev_err(dev, "Failed to initialize panel: %d\n", ret);
 		gpiod_set_value_cansleep(ctx->reset_gpio, 0);
@@ -139,20 +141,20 @@ static int tc358764_ltl101a10_prepare(struct drm_panel *panel)
 	return 0;
 }
 
-static int tc358764_ltl101a10_unprepare(struct drm_panel *panel)
+static int tc358764_ltl101al06_unprepare(struct drm_panel *panel)
 {
-	struct tc358764_ltl101a10 *ctx = to_tc358764_ltl101a10(panel);
+	struct tc358764_ltl101al06 *ctx = to_tc358764_ltl101al06(panel);
 	struct device *dev = &ctx->dsi->dev;
 	int ret;
 
 	if (!ctx->prepared)
 		return 0;
 
-	ret = tc358764_ltl101a10_off(ctx);
+	/*ret = tc358764_ltl101al06_off(ctx);
 	if (ret < 0)
 		dev_err(dev, "Failed to un-initialize panel: %d\n", ret);
-
-	gpiod_set_value_cansleep(ctx->reset_gpio, 0);
+  */
+	// gpiod_set_value_cansleep(ctx->reset_gpio, 0);
 	regulator_bulk_disable(ARRAY_SIZE(ctx->supplies), ctx->supplies);
 	clk_disable_unprepare(ctx->pwm_clk);
 
@@ -160,7 +162,7 @@ static int tc358764_ltl101a10_unprepare(struct drm_panel *panel)
 	return 0;
 }
 
-static const struct drm_display_mode tc358764_ltl101a10_mode = {
+static const struct drm_display_mode tc358764_ltl101al06_mode = {
 	.clock = (1280 + 52 + 4 + 48) * (800 + 32 + 6 + 64) * 60 / 1000,
 	.hdisplay = 1280,
 	.hsync_start = 1280 + 52,
@@ -175,12 +177,12 @@ static const struct drm_display_mode tc358764_ltl101a10_mode = {
 	.height_mm = 149,
 };
 
-static int tc358764_ltl101a10_get_modes(struct drm_panel *panel,
+static int tc358764_ltl101al06_get_modes(struct drm_panel *panel,
 					struct drm_connector *connector)
 {
 	struct drm_display_mode *mode;
 
-	mode = drm_mode_duplicate(connector->dev, &tc358764_ltl101a10_mode);
+	mode = drm_mode_duplicate(connector->dev, &tc358764_ltl101al06_mode);
 	if (!mode)
 		return -ENOMEM;
 
@@ -194,16 +196,16 @@ static int tc358764_ltl101a10_get_modes(struct drm_panel *panel,
 	return 1;
 }
 
-static const struct drm_panel_funcs tc358764_ltl101a10_panel_funcs = {
-	.prepare = tc358764_ltl101a10_prepare,
-	.unprepare = tc358764_ltl101a10_unprepare,
-	.get_modes = tc358764_ltl101a10_get_modes,
+static const struct drm_panel_funcs tc358764_ltl101al06_panel_funcs = {
+	.prepare = tc358764_ltl101al06_prepare,
+	.unprepare = tc358764_ltl101al06_unprepare,
+	.get_modes = tc358764_ltl101al06_get_modes,
 };
 
-static int tc358764_ltl101a10_probe(struct mipi_dsi_device *dsi)
+static int tc358764_ltl101al06_probe(struct mipi_dsi_device *dsi)
 {
 	struct device *dev = &dsi->dev;
-	struct tc358764_ltl101a10 *ctx;
+	struct tc358764_ltl101al06 *ctx;
 	int ret;
 
 	ctx = devm_kzalloc(dev, sizeof(*ctx), GFP_KERNEL);
@@ -241,7 +243,7 @@ static int tc358764_ltl101a10_probe(struct mipi_dsi_device *dsi)
 	dsi->mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE |
 			  MIPI_DSI_MODE_EOT_PACKET;
 
-	drm_panel_init(&ctx->panel, dev, &tc358764_ltl101a10_panel_funcs,
+	drm_panel_init(&ctx->panel, dev, &tc358764_ltl101al06_panel_funcs,
 		       DRM_MODE_CONNECTOR_DSI);
 
 	ret = drm_panel_add(&ctx->panel);
@@ -259,9 +261,9 @@ static int tc358764_ltl101a10_probe(struct mipi_dsi_device *dsi)
 	return 0;
 }
 
-static int tc358764_ltl101a10_remove(struct mipi_dsi_device *dsi)
+static int tc358764_ltl101al06_remove(struct mipi_dsi_device *dsi)
 {
-	struct tc358764_ltl101a10 *ctx = mipi_dsi_get_drvdata(dsi);
+	struct tc358764_ltl101al06 *ctx = mipi_dsi_get_drvdata(dsi);
 	int ret;
 
 	ret = mipi_dsi_detach(dsi);
@@ -273,22 +275,22 @@ static int tc358764_ltl101a10_remove(struct mipi_dsi_device *dsi)
 	return 0;
 }
 
-static const struct of_device_id tc358764_ltl101a10_of_match[] = {
-	{ .compatible = "samsung,tc358764-ltl101a06" },
+static const struct of_device_id tc358764_ltl101al06_of_match[] = {
+	{ .compatible = "samsung,tc358764-ltl101al06" },
 	{ /* sentinel */ }
 };
-MODULE_DEVICE_TABLE(of, tc358764_ltl101a10_of_match);
+MODULE_DEVICE_TABLE(of, tc358764_ltl101al06_of_match);
 
-static struct mipi_dsi_driver tc358764_ltl101a10_driver = {
-	.probe = tc358764_ltl101a10_probe,
-	.remove = tc358764_ltl101a10_remove,
+static struct mipi_dsi_driver tc358764_ltl101al06_driver = {
+	.probe = tc358764_ltl101al06_probe,
+	.remove = tc358764_ltl101al06_remove,
 	.driver = {
-		.name = "panel-tc358764-ltl101a10",
-		.of_match_table = tc358764_ltl101a10_of_match,
+		.name = "panel-tc358764-ltl101al06",
+		.of_match_table = tc358764_ltl101al06_of_match,
 	},
 };
-module_mipi_dsi_driver(tc358764_ltl101a10_driver);
+module_mipi_dsi_driver(tc358764_ltl101al06_driver);
 
 MODULE_AUTHOR("linux-mdss-dsi-panel-driver-generator <fix@me>"); // FIXME
-MODULE_DESCRIPTION("DRM driver for ss_dsi_panel_TC358764_LTL101A106_WXGA");
+MODULE_DESCRIPTION("DRM driver for ss_dsi_panel_TC358764_LTL101AL06_WXGA");
 MODULE_LICENSE("GPL v2");
