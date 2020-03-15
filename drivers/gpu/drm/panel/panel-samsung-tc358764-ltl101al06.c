@@ -120,7 +120,7 @@ static int tc358764_ltl101al06_prepare(struct drm_panel *panel)
 	}
 
 
-	/* TODO: investigate
+	/* FIXME: make initialization work
 	tc358764_ltl101al06_reset(ctx);
 
 	ret = tc358764_ltl101al06_on(ctx);
@@ -150,11 +150,14 @@ static int tc358764_ltl101al06_unprepare(struct drm_panel *panel)
 	if (!ctx->prepared)
 		return 0;
 
-	/*ret = tc358764_ltl101al06_off(ctx);
+	/* FIXME: see above
+	ret = tc358764_ltl101al06_off(ctx);
 	if (ret < 0)
 		dev_err(dev, "Failed to un-initialize panel: %d\n", ret);
-  */
-	// gpiod_set_value_cansleep(ctx->reset_gpio, 0);
+  
+	gpiod_set_value_cansleep(ctx->reset_gpio, 0);
+	*/
+
 	regulator_bulk_disable(ARRAY_SIZE(ctx->supplies), ctx->supplies);
 	clk_disable_unprepare(ctx->pwm_clk);
 

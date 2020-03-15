@@ -33,7 +33,7 @@
 			stride = <(1280 * 3)>;
 			format = "r8g8b8";
 			power-domains = <&gcc MDSS_GDSC>;
-      clocks = <&gcc GCC_GP3_CLK>;
+			clocks = <&gcc GCC_GP3_CLK>;
 		};
 		
 	};
@@ -108,7 +108,7 @@
 			};
 		};
 
-    mdss@1a00000 {
+		mdss@1a00000 {
 			dsi@1a98000 {
 				#address-cells = <1>;
 				#size-cells = <0>;
